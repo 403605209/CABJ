@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import App from './App.vue';
-import Cabj from 'cabj';
+import Cabj from '../../src/main';
 
 Vue.config.productionTip = false;
 Vue.use(Cabj);
