@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "packages": {
+    "cabj": {
+      "signature": "8c5ea4efb16af91cfe6e274b8f6ef24b",
+      "file": true,
+      "replaced": "file:../"
+    }
+  }
+}
