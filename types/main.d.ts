@@ -1,10 +1,10 @@
 import Vue, { VueConstructor } from './vue';
-interface CABL {
+interface CABJ {
   start(key: string): void;
 }
-export declare type CABLPlugin = {
+export declare type CABJPlugin = {
   install(vue: VueConstructor<Vue>): void;
 };
-declare const instance: CABLPlugin;
+declare const instance: CABJPlugin;
 export default instance;
-export { CABL };
+export { CABJ };

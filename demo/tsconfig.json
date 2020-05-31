@@ -7,6 +7,6 @@
     "experimentalDecorators": true,
     "esModuleInterop": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }

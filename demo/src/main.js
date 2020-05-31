@@ -1,10 +1,10 @@
 import Vue from 'vue';
 import App from './App.vue';
-import Cabj from '../../src/main';
+/* eslint-disable */
+import { CABJInit } from '../../dist';
 
 Vue.config.productionTip = false;
-Vue.use(Cabj);
-
+CABJInit();
 new Vue({
   render: (h) => h(App),
 }).$mount('#app');

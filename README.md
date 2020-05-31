@@ -1,2 +1,6 @@
 # CABJ
-CSS animation by js
+
+css director
+
+- - [x] width
+- - [x] height

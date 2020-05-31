@@ -1,11 +1,11 @@
 import Vue, { VueConstructor } from 'vue';
-import { CABL } from './main';
+import { CABJ } from './main';
 declare module 'vue/types/vue' {
   interface Vue {
-    $cabl: CABL;
+    $cabj: CABJ;
   }
   interface VueConstructor {
-    $cabl: CABL;
+    $cabj: CABJ;
   }
 }
 
