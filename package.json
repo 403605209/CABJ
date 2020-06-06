@@ -1,5 +1,5 @@
 {
-  "name": "cabj",
+  "name": "Animacio",
   "description": "CSS animation by js",
   "version": "0.1.0",
   "author": "Whisker",
@@ -25,10 +25,14 @@
     "version": "git add -A src",
     "postversion": "git push && git push --tags"
   },
+  "dependencies": {
+    "color-string": "^1.5.3"
+  },
   "devDependencies": {
     "@types/jest": "^25.2.3",
     "@types/node": "^14.0.6",
     "jest": "^26.0.1",
+    "tern": "^0.24.3",
     "ts-jest": "^26.1.0",
     "tslint": "^6.1.2",
     "typescript": "^3.9.3"

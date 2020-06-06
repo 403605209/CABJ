@@ -1,10 +1,10 @@
 import Vue from 'vue';
 import App from './App.vue';
 /* eslint-disable */
-import { CABJInit } from '../../dist';
+import { AnimacioInit } from '../../dist';
 
 Vue.config.productionTip = false;
-CABJInit();
+AnimacioInit();
 new Vue({
   render: (h) => h(App),
 }).$mount('#app');

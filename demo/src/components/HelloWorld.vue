@@ -44,6 +44,19 @@ export default {
         .target(header)
         .to({ width: "100%" })
         .time(500)
+        .when(function(step, degree, element) {
+          element.style.opacity = degree;
+        })
+        .condition([
+          {
+            if: function(step, degree) {
+              return degree > 0.9999;
+            },
+            do: function(step, degree, element) {
+              element.style.borderRadius = "130px";
+            }
+          }
+        ])
         .end(function() {
           mainActor.run();
         });
@@ -51,6 +64,9 @@ export default {
         .target(main)
         .to({ height: "100%" })
         .time(300)
+        .when(function(step, degree, element) {
+          element.style.opacity = degree;
+        })
         .end(function() {
           footerActor.run();
         });
@@ -67,6 +83,29 @@ export default {
         .time(300);
 
       headerActor.run();
+
+      // headerActor
+      //   .target(header)
+      //   .to({ width: "100%" })
+      //   .time(500)
+      //   .run();
+      // mainActor
+      //   .target(main)
+      //   .to({ height: "100%" })
+      //   .time(500)
+      //   .to({ backgroundColor: "pink" })
+      //   .time(1500)
+      //   .run();
+      // footerActor
+      //   .target(footer)
+      //   .to({ width: "100%" })
+      //   .time(500)
+      //   .run();
+      // asideActor
+      //   .target(aside)
+      //   .to({ height: "100%" })
+      //   .time(500)
+      //   .run();
     }, 1000);
   },
   methods: {
@@ -109,7 +148,7 @@ main {
   display: inline-block;
   width: calc(100% - 220px);
   height: 0;
-  background-color: #fcfcfc;
+  background-color: lightcoral;
 }
 footer {
   position: absolute;

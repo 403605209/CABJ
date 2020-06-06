@@ -1,28 +1,32 @@
 import CssDirector from './model/cssDirector';
-import CABJInit from './polyfill';
+import AnimacioInit from './polyfill';
 
-interface CABJ {
-  target(element: any): CABJ;
-  start(func: (option: any) => void): CABJ;
-  end(func: (option: any) => void): CABJ;
-  from(option: any): CABJ;
-  to(option: any): CABJ;
-  time(time: number): CABJ;
-  // 但什么时候触发别的事件
-  when(func: (option: any) => boolean): CABJ;
+interface Animacio {
+  target(element: any): Animacio;
+  start(func: (option: any) => void): Animacio;
+  end(func: (option: any) => void): Animacio;
+  from(option: any): Animacio;
+  to(option: any): Animacio;
+  time(time: number): Animacio;
+  when(
+    func: (animationStep: number, degree: number, element: any) => void
+  ): Animacio;
   // 不用run当什么时候触发
-  trigger(func: (option: any) => void): CABJ;
-  // 当什么时候开关一些属性,如display:hide
-  condition(func: (option: any) => boolean): CABJ;
-  run(): CABJ;
-  over(): CABJ;
+  trigger(func: (option: any) => void): Animacio;
+  /// Only executed once the conditions are met
+  /// { if:func, do:func }
+  condition(conditions: any[]): Animacio;
+  run(): Animacio;
+  over(): Animacio;
+  // TODO:速度函数
 }
-class CABJ {
+class Animacio {
   private element: any;
   private animationId: number;
   private startTime: number;
   private timeSum: number;
   private step: number;
+  private conditions: any[];
   private animations: any[];
   private times: any[];
   private startState: any;
@@ -30,7 +34,9 @@ class CABJ {
   private process: number;
   private startFunc: any;
   private endFunc: any;
+  private whenFunc: any;
   constructor() {
+    this.conditions = [];
     this.animations = [];
     this.times = [];
     this.startState = {};
@@ -41,31 +47,31 @@ class CABJ {
     this.step = 0;
     this.process = 0;
   }
-  target(element: any): CABJ {
+  target(element: any): Animacio {
     if (element == null) {
       throw new Error("can't get the property style !");
     }
     this.element = element;
     return this;
   }
-  start(func: (option: any) => void): CABJ {
+  start(func: (option: any) => void): Animacio {
     this.startFunc = func;
     return this;
   }
-  end(func: (option: any) => void): CABJ {
+  end(func: (option: any) => void): Animacio {
     this.endFunc = func;
     return this;
   }
-  from(option: any): CABJ {
+  from(option: any): Animacio {
     this.startState = option;
     return this;
   }
-  to(option: any): CABJ {
+  to(option: any): Animacio {
     this.animations.push(option);
     return this;
   }
   // time肯能精细到map,每一个样式执行时间,事件有可能无限循环,设置线性,曲线
-  time(time: number): CABJ {
+  time(time: number): Animacio {
     if (this.animations.length - (this.times.length + 1) !== 0) {
       throw new Error("set time: animation can't be null !");
     }
@@ -81,8 +87,19 @@ class CABJ {
     }
     return this;
   }
+  when(
+    func: (animationStep: number, degree: number, element: any) => void
+  ): Animacio {
+    this.whenFunc = func;
+    return this;
+  }
+  condition(conditions: any[]): Animacio {
+    this.conditions = conditions;
+    return this;
+  }
   // tslint:disable-next-line: cyclomatic-complexity
-  run(): CABJ {
+  run(): Animacio {
+    const _self = this;
     // cancel
     if (this.animationId) {
       window.cancelAnimationFrame(this.animationId);
@@ -105,11 +122,21 @@ class CABJ {
     }
     this.startTime = window.performance.now();
     this.animationId = window.requestAnimationFrame(this.animate.bind(this));
+    setTimeout(function () {
+      _self.over();
+    }, this.timeSum);
     return this;
   }
   // 暂停
   // 结束
-  over(isSetEndState: boolean = true): CABJ {
+  over(isSetEndState: boolean = true): Animacio {
+    this.process = 1;
+    // run condition
+    this.runCondition();
+    // end func
+    if (this.endFunc) {
+      this.endFunc(this);
+    }
     if (isSetEndState) {
       this.setEndState();
     }
@@ -121,29 +148,27 @@ class CABJ {
   }
   // tslint:disable-next-line: cyclomatic-complexity
   private animate(time: number) {
+    // When you switch the tab, it will not run, here is replaced by the window time
+    time = window.performance.now();
     const interval = time - this.startTime;
     const beforeTime = this.step !== 0 ? this.times[this.step - 1] : 0;
     this.process =
       (interval - beforeTime) / (this.times[this.step] - beforeTime);
     this.animateStep();
 
-    // 超时进行下一步
-    if (interval > this.times[this.step]) {
-      this.step += 1;
-      if (this.step < this.animations.length) {
-        const result: any = this.animations[this.step];
-        for (const key of Object.keys(result)) {
-          this.startState[key] = CssDirector.getTargetCss(key, this.element);
+    if (time < this.startTime + this.timeSum) {
+      // 超时进行下一步
+      if (interval > this.times[this.step]) {
+        this.step += 1;
+        if (this.step < this.animations.length) {
+          const result: any = this.animations[this.step];
+          for (const key of Object.keys(result)) {
+            this.startState[key] = CssDirector.getTargetCss(key, this.element);
+          }
         }
       }
-    }
-    if (time < this.startTime + this.timeSum) {
       this.animationId = window.requestAnimationFrame(this.animate.bind(this));
     } else {
-      // end func
-      if (this.endFunc) {
-        this.endFunc(this);
-      }
       this.over();
     }
   }
@@ -165,18 +190,31 @@ class CABJ {
     );
     const process = this.process;
     CssDirector.set(key, this.element, value, result, process);
+    // run whenFun
+    if (this.whenFunc) {
+      this.whenFunc(this.step, process, this.element);
+    }
+    // run condition
+    this.runCondition();
+  }
+  private runCondition() {
+    if (this.conditions.length > 0) {
+      for (let i = this.conditions.length - 1; i >= 0; i--) {
+        const condition = this.conditions[i];
+        if (condition.if(this.step, this.process, this.element)) {
+          condition.do(this.step, this.process, this.element);
+          this.conditions.splice(i, 1);
+        }
+      }
+    }
   }
   private setEndState() {
     const result: any = this.endState;
     for (const key of Object.keys(result)) {
-      this.element.style[key] = CssDirector.getResultCss(
-        key,
-        this.element,
-        result[key]
-      );
+      this.element.style[key] = result[key];
     }
   }
 }
 
-export default CABJ;
-export { CABJInit, CssDirector };
+export default Animacio;
+export { AnimacioInit, CssDirector };

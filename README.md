@@ -1,6 +1,6 @@
-# CABJ
+# Animacio
 
 css director
 
-- - [x] width
-- - [x] height
+- [x] width,height,top,left,right,bottom
+- [x] backgroundColor,color,borderColor,outlineColor,textDecorationColor

@@ -1,5 +1,8 @@
+import colorConvert from 'color-string';
 export default class CssDirector {
   static lengthRule = ',width,height,top,left,right,bottom,';
+  static colorRule =
+    ',backgroundColor,color,borderColor,outlineColor,textDecorationColor,';
   static set(
     key: string,
     element: any,
@@ -10,6 +13,8 @@ export default class CssDirector {
     if (degree <= 1) {
       if (this.lengthRule.includes(`,${key},`)) {
         element.style[key] = this.lengthChange(value, result, degree);
+      } else if (this.colorRule.includes(`,${key},`)) {
+        element.style[key] = this.colorChange(value, result, degree);
       }
     }
   }
@@ -20,48 +25,63 @@ export default class CssDirector {
     const change = sub * degree;
     return `${start + change}px`;
   }
-  static getTargetCss(key: string, element: any): string {
-    switch (key) {
-      case 'width':
-        return element.offsetWidth;
-      case 'height':
-        return element.offsetHeight;
+  static colorChange(value: string, result: any, degree: number) {
+    const values: number[] = colorConvert.get.rgb(value);
+    const rgba = [];
+    for (let index = 0; index < values.length; index++) {
+      rgba.push(this.changeItem(values[index], result[index], degree));
     }
-    return '';
+    return `rgba(${rgba.join(',')})`;
   }
-  // tslint:disable-next-line: cyclomatic-complexity
+  static changeItem(start: number, end: number, degree: number) {
+    const sub = end - start;
+    const change = sub * degree;
+    return start + change;
+  }
+  static getTargetCss(key: string, element: any): string {
+    return this.getCurCss(element)[key];
+  }
   static getResultCss(key: string, element: any, cssText: string): string {
-    switch (key) {
-      // width
-      case 'width':
-        return this.lengthGet(element, cssText, 'offsetWidth');
-      // height
-      case 'height':
-        return this.lengthGet(element, cssText, 'offsetHeight');
+    if (this.lengthRule.includes(`,${key},`)) {
+      return this.lengthResultGet(key, element, cssText);
+    } else if (this.colorRule.includes(`,${key},`)) {
+      return this.colorResultGet(cssText);
     }
     return element.style[key];
   }
-  static lengthGet(element: any, cssText: string, property: string) {
+  static lengthResultGet(key: string, element: any, cssText: string) {
     if (cssText.includes('%')) {
-      const parentPixel = element.offsetParent[property];
+      const parentPixel = Number.parseFloat(
+        this.getCurCss(this.getParent(element))[key]
+      );
       const percent = Number.parseFloat(cssText) / 100;
       return `${parentPixel * percent}px`;
     } else {
-      return this.getUnit(element, cssText, element[property]);
+      return this.getUnit(element, cssText, this.getCurCss(element)[key]);
     }
+  }
+  static colorResultGet(cssText: string) {
+    // [255, 255, 255, 1]
+    return colorConvert.get.rgb(cssText);
+  }
+  static getCurCss(element: any): any {
+    return getComputedStyle(element);
+  }
+  static getParent(element: any): any {
+    return element.offsetParent || element.parentElement || document.body;
   }
   static getUnit(element: any, cssText: string, value: any) {
     if (cssText.includes('px')) {
       return cssText;
     } else if (cssText.includes('em')) {
       const parentFontPixel = Number.parseFloat(
-        getComputedStyle(element.offsetParent).fontSize
+        this.getCurCss(this.getParent(element)).fontSize
       );
       const em = Number.parseFloat(cssText);
       return `${parentFontPixel * em}px`;
     } else if (cssText.includes('rem')) {
       const bodyFontPixel = Number.parseFloat(
-        getComputedStyle(document.getElementsByTagName('body')[0]).fontSize
+        this.getCurCss(document.getElementsByTagName('body')[0]).fontSize
       );
       const rem = Number.parseFloat(cssText);
       return `${bodyFontPixel * rem}px`;
