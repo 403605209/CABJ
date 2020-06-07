@@ -1,7 +1,7 @@
 {
-  "name": "Amaco",
+  "name": "amaco",
   "description": "CSS animation by js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Whisker",
   "license": "MIT",
   "private": false,
@@ -26,6 +26,7 @@
     "postversion": "git push && git push --tags"
   },
   "dependencies": {
+    "bezier-easing": "^2.1.0",
     "color-string": "^1.5.3"
   },
   "devDependencies": {
@@ -35,6 +36,7 @@
     "tern": "^0.24.3",
     "ts-jest": "^26.1.0",
     "tslint": "^6.1.2",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.9.3"
   },
   "files": [

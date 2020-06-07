@@ -1,5 +1,6 @@
 import CssDirector from './model/cssDirector';
 import AmacoInit from './polyfill';
+import BezierEasing from 'bezier-easing';
 
 interface Amaco {
   target(element: any): Amaco;
@@ -8,6 +9,7 @@ interface Amaco {
   from(option: any): Amaco;
   to(option: any): Amaco;
   time(time: number): Amaco;
+  speed(func: (process: number) => number | any): Amaco;
   when(
     func: (animationStep: number, degree: number, element: any) => void
   ): Amaco;
@@ -18,7 +20,6 @@ interface Amaco {
   condition(conditions: any[]): Amaco;
   run(): Amaco;
   over(): Amaco;
-  // TODO:速度函数
 }
 class Amaco {
   private element: any;
@@ -35,12 +36,13 @@ class Amaco {
   private startFunc: any;
   private endFunc: any;
   private whenFunc: any;
+  private speedFunc: any;
   constructor() {
     this.conditions = [];
     this.animations = [];
     this.times = [];
-    this.startState = {};
-    this.endState = {};
+    this.startState = { };
+    this.endState = { };
     this.animationId = 0;
     this.startTime = 0;
     this.timeSum = 0;
@@ -52,22 +54,27 @@ class Amaco {
       throw new Error("can't get the property style !");
     }
     this.element = element;
+
     return this;
   }
   start(func: (option: any) => void): Amaco {
     this.startFunc = func;
+
     return this;
   }
   end(func: (option: any) => void): Amaco {
     this.endFunc = func;
+
     return this;
   }
   from(option: any): Amaco {
     this.startState = option;
+
     return this;
   }
   to(option: any): Amaco {
     this.animations.push(option);
+
     return this;
   }
   // time肯能精细到map,每一个样式执行时间,事件有可能无限循环,设置线性,曲线
@@ -85,16 +92,66 @@ class Amaco {
       const value = index * interval + initTime;
       this.times.push(value);
     }
+
     return this;
   }
   when(
     func: (animationStep: number, degree: number, element: any) => void
   ): Amaco {
     this.whenFunc = func;
+
     return this;
   }
   condition(conditions: any[]): Amaco {
     this.conditions = conditions;
+
+    return this;
+  }
+  // tslint:disable-next-line: cyclomatic-complexity
+  speed(func: any): Amaco {
+    if (typeof func === 'string') {
+      switch (func) {
+        case 'linear':
+          break;
+        case 'u-speed':
+          const var1 = 4;
+          const var2 = 6;
+          const var3 = 3;
+          this.speedFunc = function (x: number) {
+            return var1 * Math.pow(x, 3) - var2 * Math.pow(x, 2) + var3 * x;
+          };
+          break;
+        case 'ease':
+          // tslint:disable-next-line: no-magic-numbers
+          const ease = BezierEasing(0.25, 0.1, 0.25, 1);
+          this.speedFunc = ease;
+          break;
+        case 'ease-in':
+          // tslint:disable-next-line: no-magic-numbers
+          const easeIn = BezierEasing(0.42, 0, 1, 1);
+          this.speedFunc = easeIn;
+          break;
+        case 'ease-out':
+          // tslint:disable-next-line: no-magic-numbers
+          const easeOut = BezierEasing(0, 0, 0.58, 1);
+          this.speedFunc = easeOut;
+          break;
+        case 'ease-in-out':
+          // tslint:disable-next-line: no-magic-numbers
+          const easeInOut = BezierEasing(0.42, 0, 0.58, 1);
+          this.speedFunc = easeInOut;
+          break;
+      }
+    } else if (typeof func === 'object') {
+      // tslint:disable-next-line: no-magic-numbers
+      if (func.length >= 4) {
+        this.speedFunc = BezierEasing(func[0], func[1], func[2], func[3]);
+      }
+    } else {
+      console.assert(func !== null);
+      this.speedFunc = func;
+    }
+
     return this;
   }
   // tslint:disable-next-line: cyclomatic-complexity
@@ -125,6 +182,7 @@ class Amaco {
     setTimeout(function () {
       _self.over();
     }, this.timeSum);
+
     return this;
   }
   // 暂停
@@ -144,6 +202,7 @@ class Amaco {
       window.cancelAnimationFrame(this.animationId);
     }
     this.animationId = 0;
+
     return this;
   }
   // tslint:disable-next-line: cyclomatic-complexity
@@ -189,7 +248,17 @@ class Amaco {
       this.animations[this.step][key]
     );
     const process = this.process;
-    CssDirector.set(key, this.element, value, result, process);
+    if (this.speedFunc) {
+      CssDirector.set(
+        key,
+        this.element,
+        value,
+        result,
+        this.speedFunc(process)
+      );
+    } else {
+      CssDirector.set(key, this.element, value, result, process);
+    }
     // run whenFun
     if (this.whenFunc) {
       this.whenFunc(this.step, process, this.element);

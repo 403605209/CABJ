@@ -1,4 +1,5 @@
 import colorConvert from 'color-string';
+const HUNDRED = 100;
 export default class CssDirector {
   static lengthRule = ',width,height,top,left,right,bottom,';
   static colorRule =
@@ -54,19 +55,15 @@ export default class CssDirector {
       const parentPixel = Number.parseFloat(
         this.getCurCss(this.getParent(element))[key]
       );
-      const percent = Number.parseFloat(cssText) / 100;
+      const percent = Number.parseFloat(cssText) / HUNDRED;
       return `${parentPixel * percent}px`;
     } else if (cssText.includes('vw')) {
-      const bodyPixel = Number.parseFloat(
-        this.getCurCss(document.body)['width']
-      );
-      const percent = Number.parseFloat(cssText) / 100;
+      const bodyPixel = Number.parseFloat(this.getCurCss(document.body).width);
+      const percent = Number.parseFloat(cssText) / HUNDRED;
       return `${bodyPixel * percent}px`;
     } else if (cssText.includes('vh')) {
-      const bodyPixel = Number.parseFloat(
-        this.getCurCss(document.body)['height']
-      );
-      const percent = Number.parseFloat(cssText) / 100;
+      const bodyPixel = Number.parseFloat(this.getCurCss(document.body).height);
+      const percent = Number.parseFloat(cssText) / HUNDRED;
       return `${bodyPixel * percent}px`;
     } else {
       return this.getUnit(element, cssText, this.getCurCss(element)[key]);
