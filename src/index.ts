@@ -1,26 +1,26 @@
 import CssDirector from './model/cssDirector';
-import AnimacioInit from './polyfill';
+import AmacoInit from './polyfill';
 
-interface Animacio {
-  target(element: any): Animacio;
-  start(func: (option: any) => void): Animacio;
-  end(func: (option: any) => void): Animacio;
-  from(option: any): Animacio;
-  to(option: any): Animacio;
-  time(time: number): Animacio;
+interface Amaco {
+  target(element: any): Amaco;
+  start(func: (option: any) => void): Amaco;
+  end(func: (option: any) => void): Amaco;
+  from(option: any): Amaco;
+  to(option: any): Amaco;
+  time(time: number): Amaco;
   when(
     func: (animationStep: number, degree: number, element: any) => void
-  ): Animacio;
+  ): Amaco;
   // 不用run当什么时候触发
-  trigger(func: (option: any) => void): Animacio;
+  trigger(func: (option: any) => void): Amaco;
   /// Only executed once the conditions are met
   /// { if:func, do:func }
-  condition(conditions: any[]): Animacio;
-  run(): Animacio;
-  over(): Animacio;
+  condition(conditions: any[]): Amaco;
+  run(): Amaco;
+  over(): Amaco;
   // TODO:速度函数
 }
-class Animacio {
+class Amaco {
   private element: any;
   private animationId: number;
   private startTime: number;
@@ -47,31 +47,31 @@ class Animacio {
     this.step = 0;
     this.process = 0;
   }
-  target(element: any): Animacio {
+  target(element: any): Amaco {
     if (element == null) {
       throw new Error("can't get the property style !");
     }
     this.element = element;
     return this;
   }
-  start(func: (option: any) => void): Animacio {
+  start(func: (option: any) => void): Amaco {
     this.startFunc = func;
     return this;
   }
-  end(func: (option: any) => void): Animacio {
+  end(func: (option: any) => void): Amaco {
     this.endFunc = func;
     return this;
   }
-  from(option: any): Animacio {
+  from(option: any): Amaco {
     this.startState = option;
     return this;
   }
-  to(option: any): Animacio {
+  to(option: any): Amaco {
     this.animations.push(option);
     return this;
   }
   // time肯能精细到map,每一个样式执行时间,事件有可能无限循环,设置线性,曲线
-  time(time: number): Animacio {
+  time(time: number): Amaco {
     if (this.animations.length - (this.times.length + 1) !== 0) {
       throw new Error("set time: animation can't be null !");
     }
@@ -89,16 +89,16 @@ class Animacio {
   }
   when(
     func: (animationStep: number, degree: number, element: any) => void
-  ): Animacio {
+  ): Amaco {
     this.whenFunc = func;
     return this;
   }
-  condition(conditions: any[]): Animacio {
+  condition(conditions: any[]): Amaco {
     this.conditions = conditions;
     return this;
   }
   // tslint:disable-next-line: cyclomatic-complexity
-  run(): Animacio {
+  run(): Amaco {
     const _self = this;
     // cancel
     if (this.animationId) {
@@ -129,7 +129,7 @@ class Animacio {
   }
   // 暂停
   // 结束
-  over(isSetEndState: boolean = true): Animacio {
+  over(isSetEndState: boolean = true): Amaco {
     this.process = 1;
     // run condition
     this.runCondition();
@@ -216,5 +216,5 @@ class Animacio {
   }
 }
 
-export default Animacio;
-export { AnimacioInit, CssDirector };
+export default Amaco;
+export { AmacoInit, CssDirector };

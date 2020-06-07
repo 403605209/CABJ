@@ -56,6 +56,18 @@ export default class CssDirector {
       );
       const percent = Number.parseFloat(cssText) / 100;
       return `${parentPixel * percent}px`;
+    } else if (cssText.includes('vw')) {
+      const bodyPixel = Number.parseFloat(
+        this.getCurCss(document.body)['width']
+      );
+      const percent = Number.parseFloat(cssText) / 100;
+      return `${bodyPixel * percent}px`;
+    } else if (cssText.includes('vh')) {
+      const bodyPixel = Number.parseFloat(
+        this.getCurCss(document.body)['height']
+      );
+      const percent = Number.parseFloat(cssText) / 100;
+      return `${bodyPixel * percent}px`;
     } else {
       return this.getUnit(element, cssText, this.getCurCss(element)[key]);
     }
